@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+.env
+.env.local
+*.log
+.DS_Store
+firebase-debug.log
+rik-pernik-firebase-adminsdk-fbsvc-ad7db3f588.json
