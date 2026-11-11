@@ -306,7 +306,6 @@ export default function NewPolicyPage() {
 
                   <div className="relative">
                     <Input
-                      required
                       placeholder="123456789"
                       value={form.policyNumber}
                       className={

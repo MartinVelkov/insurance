@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     const installmentIds: string[] = [];
     for (const item of data.installments) {
       const ref = db.collection("installments").doc(); installmentIds.push(ref.id);
-      batch.set(ref, { ...employeeRecordFields(employee), policyId: policyRef.id, clientId, vehicleId, sequence: item.sequence, totalCount: item.totalCount, dueDate: item.dueDate, amount: item.amount, currency: item.currency, paymentStatus: "pending", paidAt: null, googleEventId: null, calendarSyncStatus: "not_synced", calendarSyncError: null, createdAt: now, updatedAt: now, updatedBy: employee.uid });
+      batch.set(ref, { ...employeeRecordFields(employee), policyId: policyRef.id, clientId, vehicleId, sequence: item.sequence, totalCount: item.totalCount, dueDate: item.dueDate, amount: item.amount, currency: item.currency, paymentStatus: "pending", paidAt: null, googleEventId: null, googleCalendarId: null, calendarSyncStatus: "not_synced", calendarSyncError: null, createdAt: now, updatedAt: now, updatedBy: employee.uid });
     }
     const auditRef = db.collection("auditLogs").doc();
     batch.set(auditRef, { ...employeeRecordFields(employee), actorUid: employee.uid, actorEmail: employee.email, action: "Създадена полица", entityType: "policy", entityId: policyRef.id, subjectClientId: clientId, after: { policyNumber: data.policyNumber, registrationNumber: data.registrationNumber, totalAmount: data.totalAmount, currency: data.currency }, createdAt: now });
@@ -116,7 +116,13 @@ export async function POST(request: NextRequest) {
       db.collection("googleConnections").doc(employee.uid).get(),
       db.collection("employees").doc(employee.uid).get(),
     ]);
-    const canSync = connectionSnap.exists && Boolean(employeeSnap.data()?.calendarSettings?.calendarId);
+    const canSync =
+      connectionSnap.exists &&
+      connectionSnap.data()?.reauthorizationRequired !== true &&
+      Boolean(
+        connectionSnap.data()?.calendarId ??
+          employeeSnap.data()?.calendarSettings?.calendarId,
+      );
     if (canSync) {
       for (const id of installmentIds) {
         try { await syncInstallmentToCalendar(id, employee); synced++; }

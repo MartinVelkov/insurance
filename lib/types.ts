@@ -89,6 +89,7 @@ export interface Installment {
   paymentStatus: PaymentStatus;
   paidAt: string | null;
   googleEventId: string | null;
+  googleCalendarId?: string | null;
   calendarSyncStatus: SyncStatus;
   calendarSyncError?: string | null;
   locationId: string;

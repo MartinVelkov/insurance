@@ -88,9 +88,14 @@ https://your-domain.bg/api/google/callback
 ```env
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
+APP_BASE_URL=http://localhost:3000
 GOOGLE_REDIRECT_URI=http://localhost:3000/api/google/callback
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+`GOOGLE_REDIRECT_URI` трябва да е точно `APP_BASE_URL` +
+`/api/google/callback` и да съвпада символ по символ с Authorized redirect URI
+в Google Cloud Console. За production използвай публичния HTTPS origin без trailing
+slash, например `APP_BASE_URL=https://app.example.bg`.
 
 7. Генерирай ключ за криптиране на refresh token:
 
@@ -104,7 +109,9 @@ openssl rand -base64 32
 CALENDAR_TOKEN_ENCRYPTION_KEY=...
 ```
 
-Refresh token-ът се пази криптиран в `googleConnections/{uid}`. Firestore Rules забраняват client-side четене на тази колекция.
+Refresh token-ът, избраният календар и напомнянията се пазят по UID в
+`googleConnections/{uid}`. Refresh token-ът е AES-256-GCM криптиран, а Firestore
+Rules забраняват всякакъв client-side достъп до тази колекция.
 
 ## 4. Firestore модел
 
@@ -272,7 +279,7 @@ Refresh token-ът се пази криптиран в `googleConnections/{uid}`
 - Client-side Firestore writes са забранени; ежедневните промени минават през защитени Next.js Route Handlers.
 - Firebase Admin SDK заобикаля Firestore Security Rules, затова server route-овете правят собствена authorization проверка преди всяка операция.
 - Google refresh token не се изпраща към браузъра.
-- OAuth `state` е еднократен и с 10-минутна валидност.
+- OAuth `state` е криптографски случаен, еднократен, консумира се транзакционно и е с 10-минутна валидност.
 
 ## 8. Production препоръки
 
